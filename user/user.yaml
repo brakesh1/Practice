@@ -1,0 +1,62 @@
+- name: user setup
+  hosts: user
+  become: yes
+
+  tasks:
+
+  - name: setup nodejs
+    ansible.builtin.shell: curl -sL https://rpm.nodesource.com/setup_lts.x | bash
+
+  - name: install nodejs
+    ansible.builtin.yum:
+      name: nodejs
+      state: installed
+
+  - name: adding roboshop
+    ansible.builtin.user:
+      name: roboshop
+      state: present
+
+  - name: creating directory
+    ansible.builtin.file:
+      path: /app
+      state: directory
+
+  - name: downloading and unzipping
+    ansible.builtin.unarchive:
+      src: https://roboshop-builds.s3.amazonaws.com/user.zip
+      dest: /app 
+      remote_src: yes
+
+  - name: npm install
+    ansible.builtin.shell: npm install 
+     args:
+       chdir: /app
+
+  - name: copying user service
+    ansible.builtin.copy:
+     src: user.service
+     dest: /etc/systemd/system/user.service
+
+  - name: reloading daemon
+    ansible.builtin.systemd_service:
+     daemon_reload: true
+
+  - name: enabling and starting user
+    ansible.builtin.service:
+      name: user
+      enabled: yes
+      state: started
+
+  - name: copying mongo repo
+    ansible.builtin.copy:
+     src: mongo.repo 
+     dest: /etc/yum.repos.d/mongo.repo
+
+  - name: installing mongodb-org-shell
+    ansible.builtin.yum:
+     name: mongodb-org-shell
+     state: installed
+
+  - name: loading schemas
+    ansible.builtin.shell: mongo --host 54.85.34.169 </app/schema/user.js
