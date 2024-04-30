@@ -29,8 +29,8 @@
 
   - name: npm install
     ansible.builtin.shell: npm install
-     args:
-       chdir: /app
+    args:
+      chdir: /app
 
   - name: copying cart service
     ansible.builtin.copy:
@@ -46,5 +46,5 @@
       name: cart
       enabled: yes
       state: started 
-             
+
 
